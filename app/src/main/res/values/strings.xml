@@ -7,4 +7,6 @@
     <string name="your_score">Your Score</string>
     <string name="reset">Reset</string>
     <string name="share">Share</string>
+    <string name="weight_error">Weight is required!</string>
+    <string name="height_error">Height is required!</string>
 </resources>

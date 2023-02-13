@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.bmicompose
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -18,6 +19,7 @@ import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Height
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Warning
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.senai.sp.jandira.bmicompose.ui.theme.BMIComposeTheme
 import br.senai.sp.jandira.bmicompose.utils.bmiCalculate
+import br.senai.sp.jandira.bmicompose.utils.getColor
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +88,9 @@ fun BMICalculator() {
         mutableStateOf(false)
     }
 
+
+
+
     //Objeto que controla a requisicao de foco
     val weightFocusRequester = FocusRequester()
 
@@ -125,10 +131,15 @@ fun BMICalculator() {
             )
             OutlinedTextField(
                 value = weightState, onValueChange = { newWeight ->
-                    var lastChar = if (newWeight.isEmpty())
+                    var lastChar = if
+                                           (newWeight.isEmpty()) {
+                        isWeightError = true
                         newWeight
-                    else
+
+                    } else {
                         newWeight.get(newWeight.length - 1)
+                        isWeightError = false
+                    }
                     var newValue = if (lastChar == '.' || lastChar == ',')
                         newWeight.dropLast(1)
                     else newWeight
@@ -142,7 +153,7 @@ fun BMICalculator() {
                 },
 
                 trailingIcon = {
-                    Icon(imageVector = Icons.Rounded.Warning, contentDescription = "Oi")
+                    if (isWeightError) Icon(imageVector = Icons.Rounded.Warning, contentDescription = "Oi")
                 },
 
                 isError = isWeightError,
@@ -150,6 +161,16 @@ fun BMICalculator() {
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp)
             )
+
+            if (isWeightError) {
+                Text(
+                    text = stringResource(id = R.string.weight_error),
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Red,
+                    textAlign = TextAlign.End
+                )
+
+            }
 
             Spacer(
                 modifier = Modifier.height(16.dp)
@@ -161,10 +182,14 @@ fun BMICalculator() {
             )
             OutlinedTextField(
                 value = heightState, onValueChange = { newHeight ->
-                    var lastChar = if (newHeight.isEmpty())
+                    var lastChar = if (newHeight.isEmpty()) {
+                        isHeighError = true
                         newHeight
-                    else
+
+                    } else {
                         newHeight.get(newHeight.length - 1)
+                        isHeighError = false
+                    }
                     var newValue = if (lastChar == '.' || lastChar == ',')
                         newHeight.dropLast(1)
                     else newHeight
@@ -176,100 +201,123 @@ fun BMICalculator() {
                 isError = isHeighError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Height, contentDescription = "Email")
+                },
+
+                trailingIcon = {
+                    if (isHeighError) Icon(imageVector = Icons.Rounded.Warning, contentDescription = "Oi")
+                },
             )
 
-            Button(
-                onClick = {
-                    isWeightError = weightState.length == 0
-                    isHeighError = heightState.length == 0
-                    if (isHeighError == false && isWeightError == false) {
-                        bmiScoreState = bmiCalculate(weightState.toInt(), heightState.toDouble())
-                        expandState = true
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(2.dp),
-                colors = ButtonDefaults.buttonColors(Color(100, 149, 237))
-            ) {
+            if (isHeighError) {
                 Text(
-                    text = stringResource(id = R.string.button_calculate),
-                    color = Color.White
-                )
+                    text = stringResource(id = R.string.height_error),
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Red,
+                    textAlign = TextAlign.End,
+
+                    )
             }
 
-        }
 
-        //Footer
-        AnimatedVisibility(
-            visible = expandState,
-            enter = fadeIn(initialAlpha = 0.4f),
-            exit = shrinkVertically(animationSpec = tween()) { fullHeight ->
-                fullHeight / 2
-            },
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxSize()
-                    .padding(top = 22.dp),
-                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                backgroundColor = MaterialTheme.colors.primary
-            ) {
-                Column(
+
+            Button(
+                    onClick = {
+                        isWeightError = weightState.length == 0
+                        isHeighError = heightState.length == 0
+                        if (isHeighError == false && isWeightError == false) {
+                            bmiScoreState =
+                                bmiCalculate(weightState.toInt(), heightState.toDouble())
+                            expandState = true
+                        }
+                    },
                     modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(2.dp),
+                    colors = ButtonDefaults.buttonColors(Color(100, 149, 237))
                 ) {
                     Text(
-                        text = stringResource(id = R.string.your_score),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(id = R.string.button_calculate),
+                        color = Color.White
                     )
+                }
 
-                    Text(
-                        text = String.format("%.2f", bmiScoreState),
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+            }
 
-                    Text(
-                        text = "Congratulations! Your Weight is ideal!",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row() {
-                        Button(
-                            onClick = {
-                                expandState = false
-                                weightState = ""
-                                heightState = ""
-                                weightFocusRequester.requestFocus()
-                            },
-                            colors = ButtonDefaults.buttonColors(Color(106, 90, 205))
-                        ) {
-                            Text(text = stringResource(id = R.string.reset))
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
 
-                        Button(
-                            onClick = { },
-                            colors = ButtonDefaults.buttonColors(Color(106, 90, 205))
-                        ) {
-                            Text(text = stringResource(id = R.string.share))
+
+        //Footer
+            AnimatedVisibility(
+                visible = expandState,
+                enter = fadeIn(initialAlpha = 0.4f),
+                exit = shrinkVertically(animationSpec = tween()) { fullHeight ->
+                    fullHeight / 2
+                },
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                        .padding(top = 22.dp),
+                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                    backgroundColor = getColor(bmiScoreState)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.your_score),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = String.format("%.2f", bmiScoreState),
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "Congratulations! Your Weight is ideal!",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row() {
+                            Button(
+                                onClick = {
+                                    expandState = false
+                                    weightState = ""
+                                    heightState = ""
+                                    weightFocusRequester.requestFocus()
+                                },
+                                colors = ButtonDefaults.buttonColors(Color(106, 90, 205))
+                            ) {
+                                Text(text = stringResource(id = R.string.reset))
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = { },
+                                colors = ButtonDefaults.buttonColors(Color(106, 90, 205))
+                            ) {
+                                Text(text = stringResource(id = R.string.share))
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
